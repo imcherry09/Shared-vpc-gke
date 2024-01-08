@@ -1,0 +1,125 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+values:
+  module.project.google_org_policy_policy.default["compute.disableGuestAttributesAccess"]:
+    name: projects/test-project/policies/compute.disableGuestAttributesAccess
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition: []
+        deny_all: null
+        enforce: 'TRUE'
+        values: []
+  module.project.google_org_policy_policy.default["compute.skipDefaultNetworkCreation"]:
+    name: projects/test-project/policies/compute.skipDefaultNetworkCreation
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition: []
+        deny_all: null
+        enforce: 'TRUE'
+        values: []
+  module.project.google_org_policy_policy.default["compute.trustedImageProjects"]:
+    name: projects/test-project/policies/compute.trustedImageProjects
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition: []
+        deny_all: null
+        enforce: null
+        values:
+        - allowed_values:
+          - projects/my-project
+          denied_values: null
+  module.project.google_org_policy_policy.default["compute.vmExternalIpAccess"]:
+    name: projects/test-project/policies/compute.vmExternalIpAccess
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition: []
+        deny_all: 'TRUE'
+        enforce: null
+        values: []
+  module.project.google_org_policy_policy.default["iam.allowedPolicyMemberDomains"]:
+    name: projects/test-project/policies/iam.allowedPolicyMemberDomains
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition: []
+        deny_all: null
+        enforce: null
+        values:
+        - allowed_values:
+          - C0xxxxxxx
+          - C0yyyyyyy
+          denied_values: null
+  module.project.google_org_policy_policy.default["iam.disableServiceAccountKeyCreation"]:
+    name: projects/test-project/policies/iam.disableServiceAccountKeyCreation
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition: []
+        deny_all: null
+        enforce: 'TRUE'
+        values: []
+  module.project.google_org_policy_policy.default["iam.disableServiceAccountKeyUpload"]:
+    name: projects/test-project/policies/iam.disableServiceAccountKeyUpload
+    parent: projects/test-project
+    spec:
+    - inherit_from_parent: null
+      reset: null
+      rules:
+      - allow_all: null
+        condition:
+        - description: test condition
+          expression: resource.matchTagId('tagKeys/1234', 'tagValues/1234')
+          location: somewhere
+          title: condition
+        deny_all: null
+        enforce: 'TRUE'
+        values: []
+      - allow_all: null
+        condition: []
+        deny_all: null
+        enforce: 'FALSE'
+        values: []
+  module.project.google_project.project[0]:
+    billing_account: 123456-123456-123456
+    folder_id: '1122334455'
+    name: test-project
+    org_id: null
+    project_id: test-project
+
+counts:
+  google_org_policy_policy: 7
+  google_project: 1
