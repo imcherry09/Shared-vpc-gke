@@ -20,7 +20,7 @@ variable "billing_account_id" {
 variable "cluster_create" {
   description = "Create GKE cluster and nodepool."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "deletion_protection" {
@@ -102,3 +102,14 @@ variable "root_node" {
   description = "Hierarchy node where projects will be created, 'organizations/org_id' or 'folders/folder_id'."
   type        = string
 }
+
+
+#Own code
+variable "folder_display_name" {
+  type        = string
+  description = "The display name of the folder."
+}
+# variable "nbss_main_folder_id" {
+#   description = "The resource ID of the nbss-main folder"
+#   type        = string
+# }

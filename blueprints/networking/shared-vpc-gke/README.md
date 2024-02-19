@@ -1,82 +1,58 @@
-# Shared VPC with optional GKE cluster
+## Requirements
 
-This sample creates a basic [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc) setup using one host project and two service projects, each with a specific subnet in the shared VPC.
+No requirements.
 
-The setup also includes the specific IAM-level configurations needed for [GKE on Shared VPC](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-shared-vpc) in one of the two service projects, and optionally creates a cluster with a single nodepool.
+## Providers
 
-If you only need a basic Shared VPC, or prefer creating a cluster manually, set the `cluster_create` variable to `False`.
+| Name | Version |
+|------|---------|
+| <a name="provider_google"></a> [google](#provider\_google) | 5.16.0 |
 
-The sample has been purposefully kept simple so that it can be used as a basis for different Shared VPC configurations. This is the high level diagram:
+## Modules
 
-![High-level diagram](diagram.png "High-level diagram")
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_cluster-1"></a> [cluster-1](#module\_cluster-1) | ../../../modules/gke-cluster-standard | n/a |
+| <a name="module_cluster-1-nodepool-1"></a> [cluster-1-nodepool-1](#module\_cluster-1-nodepool-1) | ../../../modules/gke-nodepool | n/a |
+| <a name="module_host-dns"></a> [host-dns](#module\_host-dns) | ../../../modules/dns | n/a |
+| <a name="module_nat"></a> [nat](#module\_nat) | ../../../modules/net-cloudnat | n/a |
+| <a name="module_project-host"></a> [project-host](#module\_project-host) | ../../../modules/project | n/a |
+| <a name="module_project-svc-gce"></a> [project-svc-gce](#module\_project-svc-gce) | ../../../modules/project | n/a |
+| <a name="module_project-svc-gke"></a> [project-svc-gke](#module\_project-svc-gke) | ../../../modules/project | n/a |
+| <a name="module_vm-bastion"></a> [vm-bastion](#module\_vm-bastion) | ../../../modules/compute-vm | n/a |
+| <a name="module_vpc-shared"></a> [vpc-shared](#module\_vpc-shared) | ../../../modules/net-vpc | n/a |
+| <a name="module_vpc-shared-firewall"></a> [vpc-shared-firewall](#module\_vpc-shared-firewall) | ../../../modules/net-vpc-firewall | n/a |
 
-## Accessing the bastion instance and GKE cluster
+## Resources
 
-The bastion VM has no public address so access is mediated via [IAP](https://cloud.google.com/iap/docs), which is supported transparently in the `gcloud compute ssh` command. Authentication is via OS Login set as a project default.
+| Name | Type |
+|------|------|
+| [google_folder.shared_vpc_2](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/folder) | resource |
 
-Cluster access from the bastion can leverage the instance service account's `container.developer` role: the only configuration needed is to fetch cluster credentials via `gcloud container clusters get-credentials` passing the correct cluster name, location and project via command options.
+## Inputs
 
-For convenience, [Tinyproxy](http://tinyproxy.github.io/) is installed on the bastion host, allowing `kubectl` use via [IAP](https://cloud.google.com/iap/docs) from an external client:
-
-```bash
-gcloud container clusters get-credentials "${CLUSTER_NAME}" \
-  --zone "${CLUSTER_ZONE}" \
-  --project "${CLUSTER_PROJECT_NAME}"
-
-gcloud compute ssh "${BASTION_INSTANCE_NAME}" \
-  --project "${CLUSTER_PROJECT_NAME}" \
-  --zone "${CLUSTER_ZONE}" \
-  -- -L 8888:localhost:8888 -N -q -f
-
-# Run kubectl through the proxy
-HTTPS_PROXY=localhost:8888 kubectl get pods
-```
-
-An alias can also be created. For example:
-
-```bash
-alias k='HTTPS_PROXY=localhost:8888 kubectl $@'
-```
-
-## Destroying
-
-There's a minor glitch that can surface running `terraform destroy`, where the service project attachments to the Shared VPC will not get destroyed even with the relevant API call succeeding. We are investigating the issue, in the meantime just manually remove the attachment in the Cloud console or via the `gcloud beta compute shared-vpc associated-projects remove` command when `terraform destroy` fails, and then relaunch the command.
-<!-- BEGIN TFDOC -->
-## Variables
-
-| name | description | type | required | default |
-|---|---|:---:|:---:|:---:|
-| [billing_account_id](variables.tf#L15) | Billing account id used as default for new projects. | <code>string</code> | ✓ |  |
-| [prefix](variables.tf#L69) | Prefix used for resource names. | <code>string</code> | ✓ |  |
-| [root_node](variables.tf#L101) | Hierarchy node where projects will be created, 'organizations/org_id' or 'folders/folder_id'. | <code>string</code> | ✓ |  |
-| [cluster_create](variables.tf#L20) | Create GKE cluster and nodepool. | <code>bool</code> |  | <code>true</code> |
-| [deletion_protection](variables.tf#L26) | Prevent Terraform from destroying data storage resources (storage buckets, GKE clusters, CloudSQL instances) in this blueprint. When this field is set in Terraform state, a terraform destroy or terraform apply that would delete data storage resources will fail. | <code>bool</code> |  | <code>false</code> |
-| [ip_ranges](variables.tf#L33) | Subnet IP CIDR ranges. | <code>map&#40;string&#41;</code> |  | <code title="&#123;&#10;  gce &#61; &#34;10.0.16.0&#47;24&#34;&#10;  gke &#61; &#34;10.0.32.0&#47;24&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |
-| [ip_secondary_ranges](variables.tf#L42) | Secondary IP CIDR ranges. | <code>map&#40;string&#41;</code> |  | <code title="&#123;&#10;  gke-pods     &#61; &#34;10.128.0.0&#47;18&#34;&#10;  gke-services &#61; &#34;172.16.0.0&#47;24&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |
-| [owners_gce](variables.tf#L51) | GCE project owners, in IAM format. | <code>list&#40;string&#41;</code> |  | <code>&#91;&#93;</code> |
-| [owners_gke](variables.tf#L57) | GKE project owners, in IAM format. | <code>list&#40;string&#41;</code> |  | <code>&#91;&#93;</code> |
-| [owners_host](variables.tf#L63) | Host project owners, in IAM format. | <code>list&#40;string&#41;</code> |  | <code>&#91;&#93;</code> |
-| [private_service_ranges](variables.tf#L78) | Private service IP CIDR ranges. | <code>map&#40;string&#41;</code> |  | <code title="&#123;&#10;  cluster-1 &#61; &#34;192.168.0.0&#47;28&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |
-| [project_services](variables.tf#L86) | Service APIs enabled by default in new projects. | <code>list&#40;string&#41;</code> |  | <code title="&#91;&#10;  &#34;container.googleapis.com&#34;,&#10;  &#34;stackdriver.googleapis.com&#34;,&#10;&#93;">&#91;&#8230;&#93;</code> |
-| [region](variables.tf#L95) | Region used. | <code>string</code> |  | <code>&#34;europe-west1&#34;</code> |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_billing_account_id"></a> [billing\_account\_id](#input\_billing\_account\_id) | Billing account id used as default for new projects. | `string` | n/a | yes |
+| <a name="input_cluster_create"></a> [cluster\_create](#input\_cluster\_create) | Create GKE cluster and nodepool. | `bool` | `false` | no |
+| <a name="input_deletion_protection"></a> [deletion\_protection](#input\_deletion\_protection) | Prevent Terraform from destroying data storage resources (storage buckets, GKE clusters, CloudSQL instances) in this blueprint. When this field is set in Terraform state, a terraform destroy or terraform apply that would delete data storage resources will fail. | `bool` | `false` | no |
+| <a name="input_folder_display_name"></a> [folder\_display\_name](#input\_folder\_display\_name) | The display name of the folder. | `string` | n/a | yes |
+| <a name="input_ip_ranges"></a> [ip\_ranges](#input\_ip\_ranges) | Subnet IP CIDR ranges. | `map(string)` | <pre>{<br>  "gce": "10.0.16.0/24",<br>  "gke": "10.0.32.0/24"<br>}</pre> | no |
+| <a name="input_ip_secondary_ranges"></a> [ip\_secondary\_ranges](#input\_ip\_secondary\_ranges) | Secondary IP CIDR ranges. | `map(string)` | <pre>{<br>  "gke-pods": "10.128.0.0/18",<br>  "gke-services": "172.16.0.0/24"<br>}</pre> | no |
+| <a name="input_owners_gce"></a> [owners\_gce](#input\_owners\_gce) | GCE project owners, in IAM format. | `list(string)` | `[]` | no |
+| <a name="input_owners_gke"></a> [owners\_gke](#input\_owners\_gke) | GKE project owners, in IAM format. | `list(string)` | `[]` | no |
+| <a name="input_owners_host"></a> [owners\_host](#input\_owners\_host) | Host project owners, in IAM format. | `list(string)` | `[]` | no |
+| <a name="input_prefix"></a> [prefix](#input\_prefix) | Prefix used for resource names. | `string` | n/a | yes |
+| <a name="input_private_service_ranges"></a> [private\_service\_ranges](#input\_private\_service\_ranges) | Private service IP CIDR ranges. | `map(string)` | <pre>{<br>  "cluster-1": "192.168.0.0/28"<br>}</pre> | no |
+| <a name="input_project_services"></a> [project\_services](#input\_project\_services) | Service APIs enabled by default in new projects. | `list(string)` | <pre>[<br>  "container.googleapis.com",<br>  "stackdriver.googleapis.com"<br>]</pre> | no |
+| <a name="input_region"></a> [region](#input\_region) | Region used. | `string` | `"europe-west1"` | no |
+| <a name="input_root_node"></a> [root\_node](#input\_root\_node) | Hierarchy node where projects will be created, 'organizations/org\_id' or 'folders/folder\_id'. | `string` | n/a | yes |
 
 ## Outputs
 
-| name | description | sensitive |
-|---|---|:---:|
-| [gke_clusters](outputs.tf#L15) | GKE clusters information. |  |
-| [projects](outputs.tf#L24) | Project ids. |  |
-| [vms](outputs.tf#L33) | GCE VMs. |  |
-| [vpc](outputs.tf#L40) | Shared VPC. |  |
-<!-- END TFDOC -->
-## Test
-
-```hcl
-module "test" {
-  source             = "./fabric/blueprints/gke/shared-vpc-gke"
-  billing_account_id = "ABCDE-12345-ABCDE"
-  prefix             = "test"
-  root_node          = "organizations/0123456789"
-}
-# tftest modules=11 resources=45
-```
+| Name | Description |
+|------|-------------|
+| <a name="output_gke_clusters"></a> [gke\_clusters](#output\_gke\_clusters) | GKE clusters information. |
+| <a name="output_projects"></a> [projects](#output\_projects) | Project ids. |
+| <a name="output_vms"></a> [vms](#output\_vms) | GCE VMs. |
+| <a name="output_vpc"></a> [vpc](#output\_vpc) | Shared VPC. |

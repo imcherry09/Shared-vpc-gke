@@ -21,7 +21,8 @@
 
 module "project-host" {
   source          = "../../../modules/project"
-  parent          = var.root_node
+ parent          = var.root_node
+ #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
   name            = "net"
@@ -37,6 +38,7 @@ module "project-host" {
 module "project-svc-gce" {
   source          = "../../../modules/project"
   parent          = var.root_node
+  #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
   name            = "gce"
@@ -62,6 +64,7 @@ module "project-svc-gce" {
 module "project-svc-gke" {
   source          = "../../../modules/project"
   parent          = var.root_node
+#parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
   name            = "gke"
@@ -154,9 +157,9 @@ module "nat" {
 module "host-dns" {
   source     = "../../../modules/dns"
   project_id = module.project-host.project_id
-  name       = "example"
+  name       = "charandevops"
   zone_config = {
-    domain = "example.com."
+    domain = "charandevops.online."
     private = {
       client_networks = [module.vpc-shared.self_link]
     }
