@@ -35,6 +35,7 @@ output "vms" {
   value = {
     (module.vm-bastion.instance.name) = module.vm-bastion.internal_ip
   }
+   sensitive = true
 }
 
 output "vpc" {

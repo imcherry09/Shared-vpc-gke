@@ -21,7 +21,8 @@
 
 module "project-host" {
   source          = "../../../modules/project"
-  parent          = var.root_node
+ parent          = var.root_node
+ #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
   name            = "net"
@@ -37,6 +38,7 @@ module "project-host" {
 module "project-svc-gce" {
   source          = "../../../modules/project"
   parent          = var.root_node
+  #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
   name            = "gce"
@@ -62,6 +64,7 @@ module "project-svc-gce" {
 module "project-svc-gke" {
   source          = "../../../modules/project"
   parent          = var.root_node
+#parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
   name            = "gke"
@@ -154,9 +157,9 @@ module "nat" {
 module "host-dns" {
   source     = "../../../modules/dns"
   project_id = module.project-host.project_id
-  name       = "example"
+  name       = "mcs-paas-dev-zone"
   zone_config = {
-    domain = "example.com."
+    domain = "mcs-paas-dev.gcp.t-systems.net."
     private = {
       client_networks = [module.vpc-shared.self_link]
     }
@@ -210,10 +213,22 @@ module "cluster-1" {
   vpc_config = {
     network    = module.vpc-shared.self_link
     subnetwork = module.vpc-shared.subnet_self_links["${var.region}/gke"]
+    #Added ranges for pods and services
+     secondary_range_names = {
+      pods     = var.secondary_range_names["pods"]
+      services = var.secondary_range_names["services"]
+    }
+    # secondary_range_names = {
+    #   pods     = var.pods_range_name // The actual name of the secondary range for pods
+    #   services = var.services_range_name // The actual name of the secondary range for services
+    # }
+
+   
     master_authorized_ranges = {
       internal-vms = var.ip_ranges.gce
     }
     master_ipv4_cidr_block = var.private_service_ranges.cluster-1
+    
   }
   max_pods_per_node = 32
   private_cluster_config = {

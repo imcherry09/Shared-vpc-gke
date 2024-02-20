@@ -20,7 +20,7 @@ variable "billing_account_id" {
 variable "cluster_create" {
   description = "Create GKE cluster and nodepool."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "deletion_protection" {
@@ -102,3 +102,37 @@ variable "root_node" {
   description = "Hierarchy node where projects will be created, 'organizations/org_id' or 'folders/folder_id'."
   type        = string
 }
+
+
+#Own code
+variable "folder_display_name" {
+  type        = string
+  description = "The display name of the folder."
+}
+
+variable "secondary_range_names" {
+  description = "Names of the secondary IP ranges."
+  type = map(string)
+  default = {
+    pods     = "pods"
+    services = "services"
+  }
+}
+
+# variable "nbss_main_folder_id" {
+#   description = "The resource ID of the nbss-main folder"
+#   type        = string
+# }
+
+# variable "pods_range_name" {
+#   description = "Name for the pods range"
+#   type        = string
+#   default     = "pods" # You can set a default value or omit this line
+# }
+
+# variable "services_range_name" {
+#   description = "Name for the services range"
+#   type        = string
+#   default     = "services" # You can set a default value or omit this line
+# }
+
