@@ -1,0 +1,47 @@
+# Billing account ID used for new projects
+billing_account_id = "01FCA4-71D093-F908FB"
+
+# Whether to create GKE cluster and nodepool
+cluster_create = true # Set to false if you don't want to create a GKE cluster
+
+# Prevent Terraform from destroying certain resources
+deletion_protection = false
+
+# Subnet IP CIDR ranges
+ip_ranges = {
+  gce = "10.0.16.0/24"
+  gke = "10.0.32.0/24"
+}
+
+# Secondary IP CIDR ranges
+ip_secondary_ranges = {
+  gke-pods     = "10.128.0.0/18"
+  gke-services = "172.16.0.0/24"
+}
+
+# Project owners in IAM format
+owners_gce = ["user:charan.sai@mcs-paas-dev.gcp.t-systems.net"]
+owners_gke = ["user:charan.sai@mcs-paas-dev.gcp.t-systems.net"]
+owners_host = ["user:charan.sai@mcs-paas-dev.gcp.t-systems.net"]
+
+# Prefix used for resource names
+prefix = "myapp"
+
+# Private service IP CIDR ranges
+private_service_ranges = {
+  cluster-1 = "192.168.0.0/28"
+}
+
+# Service APIs enabled by default in new projects
+project_services = [
+  "container.googleapis.com",
+  "stackdriver.googleapis.com"
+]
+
+# Region used
+region = "europe-west3"
+
+# Hierarchy node where projects will be created
+root_node = "folders/974534450826" # or "organizations/YOUR_ORG_ID"  
+#nbss_main_folder_id = "189406717205"
+folder_display_name = "shared-vpc-2"
