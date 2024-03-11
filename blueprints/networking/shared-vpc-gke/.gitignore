@@ -37,3 +37,8 @@ terraform.tfvars.json
 
 # Ignore any system-specific files
 .DS_Store
+
+terraform.tfvars Templates/
+Variables Templates/
+
+*.yaml

@@ -21,7 +21,7 @@
 
 module "project-host" {
   source          = "../../../modules/project"
- parent          = var.root_node
+ parent          = data.google_folder.my_folder_info.folder
  #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
@@ -37,7 +37,7 @@ module "project-host" {
 
 module "project-svc-gce" {
   source          = "../../../modules/project"
-  parent          = var.root_node
+  parent          = data.google_folder.my_folder_info.folder
   #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
@@ -63,7 +63,7 @@ module "project-svc-gce" {
 
 module "project-svc-gke" {
   source          = "../../../modules/project"
-  parent          = var.root_node
+  parent          = data.google_folder.my_folder_info.folder
 #parent = "folders/${google_folder.shared_vpc_2.id}"
   billing_account = var.billing_account_id
   prefix          = var.prefix
@@ -85,6 +85,9 @@ module "project-svc-gke" {
     ? {
       "roles/logging.logWriter"       = [module.cluster-1-nodepool-1.0.service_account_iam_email]
       "roles/monitoring.metricWriter" = [module.cluster-1-nodepool-1.0.service_account_iam_email]
+      "roles/iam.serviceAccountUser"       = [module.cluster-1-nodepool-1.0.service_account_iam_email]
+       # Added iam.serviceAccountUser role for the autoscaler service account 
+      #"roles/iam.serviceAccountUser"  = ["serviceAccount:${var.cluster_autoscaling.auto_provisioning_defaults.service_account}"]
     }
     : {}
   )
@@ -210,19 +213,22 @@ module "cluster-1" {
   name       = "cluster-1"
   project_id = module.project-svc-gke.project_id
   location   = "${var.region}-b"
+  ############################################################################################################
+  cluster_autoscaling = var.cluster_autoscaling 
+  enable_addons = var.enable_addons
+  enable_features = var.enable_features
+  logging_config = var.logging_config
+  #maintenance_config = var.maintenance_config
+  ############################################################################################################
   vpc_config = {
     network    = module.vpc-shared.self_link
     subnetwork = module.vpc-shared.subnet_self_links["${var.region}/gke"]
     #Added ranges for pods and services
      secondary_range_names = {
-      pods     = var.secondary_range_names["pods"]
-      services = var.secondary_range_names["services"]
+      #pods     = var.secondary_range_names["pods"]
+      #services = var.secondary_range_names["services"]
     }
-    # secondary_range_names = {
-    #   pods     = var.pods_range_name // The actual name of the secondary range for pods
-    #   services = var.services_range_name // The actual name of the secondary range for services
-    # }
-
+   
    
     master_authorized_ranges = {
       internal-vms = var.ip_ranges.gce
@@ -230,7 +236,7 @@ module "cluster-1" {
     master_ipv4_cidr_block = var.private_service_ranges.cluster-1
     
   }
-  max_pods_per_node = 32
+  max_pods_per_node = var.max_pods_per_node ############################
   private_cluster_config = {
     enable_private_endpoint = true
     master_global_access    = true
@@ -252,4 +258,11 @@ module "cluster-1-nodepool-1" {
   service_account = {
     create = true
   }
+  ############################################################################################################
+  taints = var.taints 
+  node_config = var.node_config 
+  node_count  = var.node_count 
+  nodepool_config = var.nodepool_config
+  
+  ############################################################################################################
 }
