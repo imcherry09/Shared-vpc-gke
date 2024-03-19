@@ -1,0 +1,3 @@
+output "gke_service_account_email" {
+  value = module.cluster-1-nodepool-1.0.service_account_iam_email
+}
